@@ -32,9 +32,9 @@ type hyperloglog struct {
 }
 
 func NewHyperLogLog(nBits int) *hyperloglog {
-	if nBits < 4 || nBits > 16 {
-		return nil
-	}
+	// if nBits < 4 || nBits > 16 {
+	// 	return nil
+	// }
 
 	var registerSize = int(math.Pow(2, float64(nBits)))
 	return &hyperloglog{
@@ -72,21 +72,22 @@ func (hll *hyperloglog) ComputeCardinality() float64 {
 	hll.mu.RUnlock()
 
 	var totalRegisters = len(hll.registers)
-	var harmonicMean = float64(totalRegisters) * (float64(totalRegisters) / sum)
 	var result float64
 
 	switch totalRegisters {
 	case 16:
-		result = BIAS_CONSTANT_16BIT * harmonicMean
+		result = BIAS_CONSTANT_16BIT * float64(totalRegisters) * float64(totalRegisters)
 	case 32:
-		result = BIAS_CONSTANT_32BIT * harmonicMean
+		result = BIAS_CONSTANT_32BIT * float64(totalRegisters) * float64(totalRegisters)
 	case 64:
-		result = BIAS_CONSTANT_64BIT * harmonicMean
+		result = BIAS_CONSTANT_64BIT * float64(totalRegisters) * float64(totalRegisters)
 	default:
 		var biasConstant = BIAS_CONSTANT_DEFAULT / (1 + (1.079 / float64(totalRegisters)))
-		result = biasConstant * harmonicMean
+		result = biasConstant * float64(totalRegisters) * float64(totalRegisters)
 	}
 
-	hll.cardinality = result
+	var harmonicMean = math.Floor(result / sum)
+	hll.cardinality = harmonicMean
+
 	return result
 }
