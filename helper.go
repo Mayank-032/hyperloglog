@@ -1,29 +1,22 @@
 package main
 
 import (
-	"fmt"
 	"hash/fnv"
+	"math/bits"
 )
 
+// calculateHash handles both string and int64
 func calculateHash(s string) uint64 {
-	h := fnv.New64a()
-
+	var h = fnv.New64a()
 	h.Write([]byte(s))
-	return h.Sum64()
+
+	var sum = h.Sum64()
+	h.Reset()
+
+	return sum
 }
 
-func computeBinary(s string) string {
-	var hash = calculateHash(s)
-
-	return fmt.Sprintf("%064b", hash)
-}
-
-func positionOfLeftmostOne(stringBytes string) int {
-	for index, byte := range stringBytes {
-		if byte == 1 {
-			return index
-		}
-	}
-
-	return len(stringBytes)
+func positionOfLeftmostOne(stream uint64) int {
+	var numberOfLeadingZeros = bits.LeadingZeros64(stream)
+	return numberOfLeadingZeros + 1
 }
